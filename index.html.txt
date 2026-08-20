@@ -1,0 +1,415 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Vita</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: "Courier New", Courier, monospace;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            min-height: 100vh;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            text-align: center;
+            padding: 30px;
+        }
+
+        /* =========================
+           FLOR
+        ========================= */
+
+        .flower {
+            white-space: pre;
+            font-size: 18px;
+            line-height: 1.05;
+
+            user-select: none;
+
+            margin-bottom: 45px;
+
+            text-shadow:
+                0 0 5px rgba(255,255,255,0.5),
+                0 0 15px rgba(255,255,255,0.15);
+        }
+
+
+        /* =========================
+           CAMPO DA RESPOSTA
+        ========================= */
+
+        .answer-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            width: 100%;
+        }
+
+        .answer-area input {
+            width: min(500px, 90vw);
+
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #555;
+
+            color: #fff;
+
+            padding: 12px 10px;
+
+            text-align: center;
+
+            font-family: "Courier New", Courier, monospace;
+            font-size: 18px;
+
+            outline: none;
+
+            transition: border-color 0.3s;
+        }
+
+        .answer-area input:focus {
+            border-bottom: 1px solid #fff;
+        }
+
+        .answer-area input::placeholder {
+            color: #555;
+        }
+
+        .message {
+            height: 25px;
+            margin-top: 10px;
+
+            font-size: 13px;
+            color: #777;
+        }
+
+
+        /* =========================
+           ALAVANCA
+        ========================= */
+
+        .lever-container {
+            margin-top: 45px;
+
+            cursor: pointer;
+
+            user-select: none;
+
+            transition: transform 0.2s;
+        }
+
+        .lever-container:hover {
+            transform: scale(1.05);
+        }
+
+        .lever {
+            white-space: pre;
+
+            font-size: 16px;
+            line-height: 1.1;
+
+            transition: transform 0.6s ease;
+        }
+
+        /* posição normal */
+
+        .lever.normal {
+            transform: rotate(0deg);
+        }
+
+        /* posição puxada */
+
+        .lever.pulled {
+            transform: rotate(-18deg);
+        }
+
+
+        /* =========================
+           MORSE
+        ========================= */
+
+        .morse {
+            max-width: 800px;
+
+            margin-top: 35px;
+
+            opacity: 0;
+
+            max-height: 0;
+
+            overflow: hidden;
+
+            transition:
+                opacity 1s ease,
+                max-height 1s ease;
+        }
+
+        .morse.visible {
+            opacity: 1;
+            max-height: 300px;
+        }
+
+        .morse-title {
+            font-size: 12px;
+            color: #555;
+
+            margin-bottom: 15px;
+        }
+
+        .morse-text {
+            font-size: 16px;
+            line-height: 1.8;
+
+            color: #ddd;
+
+            word-break: break-word;
+        }
+
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 600px) {
+
+            .container {
+                padding: 20px;
+            }
+
+            .flower {
+                font-size: 13px;
+            }
+
+            .lever {
+                font-size: 13px;
+            }
+
+            .morse-text {
+                font-size: 13px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- =========================
+         FLOR
+    ========================= -->
+
+    <div class="flower">
+
+             .-.
+          .-'   '-.
+        .'         '.
+       /    .-.-.    \
+      ;    /     \    ;
+      |   |   🌸   |   |
+      ;    \     /    ;
+       \    '-.-'    /
+        '.         .'
+          '-.   .-'
+             | |
+          ___| |___
+        .'         '.
+       /   .       . \
+      /   / \     / \ \
+     ;   /   \   /   \  ;
+     |  /     \ /     \ |
+     ; /       V       \;
+      \               /
+       '.           .'
+         '-._____.-'
+             |||
+             |||
+             |||
+             |||
+             |||
+             |||
+    </div>
+
+
+    <!-- =========================
+         CAMPO DE RESPOSTA
+    ========================= -->
+
+    <div class="answer-area">
+
+        <input
+            type="text"
+            id="answer"
+            placeholder="..."
+            autocomplete="off"
+            spellcheck="false"
+        >
+
+        <div class="message" id="message"></div>
+
+    </div>
+
+
+    <!-- =========================
+         ALAVANCA
+    ========================= -->
+
+    <div
+        class="lever-container"
+        id="leverContainer"
+        title="Puxar"
+    >
+
+        <div class="lever normal" id="lever">
+
+             ______
+            |      |
+            |      |
+            |______|
+                \
+                 \
+                  \
+                   \
+                    \
+                     O
+                    /|\
+                    / \
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         MORSE
+    ========================= -->
+
+    <div class="morse" id="morse">
+
+        <div class="morse-title">
+            TRANSMISSÃO DESBLOQUEADA
+        </div>
+
+        <div class="morse-text">
+
+            -. .- - ..- .-. .- / -.-. ..- .. --.- ..- . / .-.. .. -... . .-. - .- -.. . -- / -.-. --- -. -.-. . -.. .. - / .- --. . -. -.. .. / --.- ..- --- -.. / .-.. .. -... . - / . -- -- / .- -- --.- ..- . / --- -- -. . ... / . .. / .-. . -.. -.. . -. -.-.
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /* =========================
+       RESPOSTA
+    ========================= */
+
+    const answer = document.getElementById("answer");
+    const message = document.getElementById("message");
+
+
+    answer.addEventListener("keydown", function(event) {
+
+        if (event.key === "Enter") {
+
+            const value = answer.value.trim();
+
+            /*
+             * A palavra correta.
+             */
+
+            if (value === "Vita") {
+
+                /*
+                 * TROQUE ESTE ENDEREÇO PELO SITE
+                 * QUE VAMOS CRIAR DEPOIS.
+                 */
+
+                window.location.href = "https://SEU-SITE-AQUI.com";
+
+            } else {
+
+                message.textContent = "...";
+
+                setTimeout(() => {
+                    message.textContent = "";
+                }, 2000);
+
+            }
+
+        }
+
+    });
+
+
+    /* =========================
+       ALAVANCA
+    ========================= */
+
+    const leverContainer = document.getElementById("leverContainer");
+    const lever = document.getElementById("lever");
+    const morse = document.getElementById("morse");
+
+
+    let pulled = false;
+
+
+    leverContainer.addEventListener("click", function() {
+
+        if (pulled) {
+            return;
+        }
+
+        pulled = true;
+
+        /*
+         * Puxa a alavanca.
+         */
+
+        lever.classList.remove("normal");
+        lever.classList.add("pulled");
+
+
+        /*
+         * Revela o código Morse.
+         */
+
+        setTimeout(() => {
+
+            morse.classList.add("visible");
+
+        }, 500);
+
+    });
+
+</script>
+
+</body>
+</html>
+```

@@ -1,415 +1,4179 @@
-```html
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Vita</title>
+<meta charset="UTF-8">
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: #000;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: "Courier New", Courier, monospace;
-            overflow: hidden;
-        }
+<title>Vita</title>
 
-        .container {
-            width: 100%;
-            max-width: 900px;
-            min-height: 100vh;
+<style>
 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+/* =========================================================
+   TELA INICIAL
+========================================================= */
 
-            text-align: center;
-            padding: 30px;
-        }
+.start-screen {
 
-        /* =========================
-           FLOR
-        ========================= */
+    position: fixed;
 
-        .flower {
-            white-space: pre;
-            font-size: 18px;
-            line-height: 1.05;
+    inset: 0;
 
-            user-select: none;
+    background: #000;
 
-            margin-bottom: 45px;
+    display: flex;
 
-            text-shadow:
-                0 0 5px rgba(255,255,255,0.5),
-                0 0 15px rgba(255,255,255,0.15);
-        }
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 9999;
+
+    transition:
+        opacity 1.5s ease;
+
+}
 
 
-        /* =========================
-           CAMPO DA RESPOSTA
-        ========================= */
+.start-screen.hidden {
 
-        .answer-area {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+    opacity: 0;
 
-            width: 100%;
-        }
+    pointer-events: none;
 
-        .answer-area input {
-            width: min(500px, 90vw);
-
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid #555;
-
-            color: #fff;
-
-            padding: 12px 10px;
-
-            text-align: center;
-
-            font-family: "Courier New", Courier, monospace;
-            font-size: 18px;
-
-            outline: none;
-
-            transition: border-color 0.3s;
-        }
-
-        .answer-area input:focus {
-            border-bottom: 1px solid #fff;
-        }
-
-        .answer-area input::placeholder {
-            color: #555;
-        }
-
-        .message {
-            height: 25px;
-            margin-top: 10px;
-
-            font-size: 13px;
-            color: #777;
-        }
+}
 
 
-        /* =========================
-           ALAVANCA
-        ========================= */
+.start-button {
 
-        .lever-container {
-            margin-top: 45px;
+    width: 180px;
 
-            cursor: pointer;
+    height: 60px;
 
-            user-select: none;
+    background: transparent;
 
-            transition: transform 0.2s;
-        }
+    border: 1px dashed #777;
 
-        .lever-container:hover {
-            transform: scale(1.05);
-        }
+    color: #aaa;
 
-        .lever {
-            white-space: pre;
+    font-family:
+        "Courier New",
+        Courier,
+        monospace;
 
-            font-size: 16px;
-            line-height: 1.1;
+    font-size: 18px;
 
-            transition: transform 0.6s ease;
-        }
+    cursor: pointer;
 
-        /* posição normal */
+    transition:
+        color .3s ease,
+        border-color .3s ease,
+        box-shadow .3s ease,
+        transform .15s ease;
 
-        .lever.normal {
-            transform: rotate(0deg);
-        }
-
-        /* posição puxada */
-
-        .lever.pulled {
-            transform: rotate(-18deg);
-        }
+}
 
 
-        /* =========================
-           MORSE
-        ========================= */
+.start-button:hover {
 
-        .morse {
-            max-width: 800px;
+    color: #fff;
 
-            margin-top: 35px;
+    border-color: #aaa;
 
-            opacity: 0;
+    box-shadow:
+        0 0 14px rgba(255,255,255,.08);
 
-            max-height: 0;
-
-            overflow: hidden;
-
-            transition:
-                opacity 1s ease,
-                max-height 1s ease;
-        }
-
-        .morse.visible {
-            opacity: 1;
-            max-height: 300px;
-        }
-
-        .morse-title {
-            font-size: 12px;
-            color: #555;
-
-            margin-bottom: 15px;
-        }
-
-        .morse-text {
-            font-size: 16px;
-            line-height: 1.8;
-
-            color: #ddd;
-
-            word-break: break-word;
-        }
+}
 
 
-        /* =========================
-           MOBILE
-        ========================= */
+.start-button:active {
 
-        @media (max-width: 600px) {
+    transform:
+        scale(.95);
 
-            .container {
-                padding: 20px;
-            }
+}
 
-            .flower {
-                font-size: 13px;
-            }
+/* =========================================================
+   INICIALIZAÇÃO DO JOGO
+========================================================= */
 
-            .lever {
-                font-size: 13px;
-            }
+.flower-area,
+.input-area {
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
 
-            .morse-text {
-                font-size: 13px;
-            }
-        }
+    transition:
+        opacity 2s ease,
+        transform 2s ease;
+}
 
-    </style>
+/* Estado normal depois da inicialização */
+body.intro-complete .flower-area,
+body.intro-complete .input-area {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* =========================================================
+   CONFIGURAÇÃO GERAL
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+
+    margin: 0;
+    padding: 0;
+
+    width: 100%;
+    min-height: 100%;
+
+    background: #000;
+    color: #ddd;
+
+    font-family:
+        "Courier New",
+        Courier,
+        monospace;
+}
+
+body {
+
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+
+    overflow-x: hidden;
+}
+
+
+/* =========================================================
+   TREMORES DA INTERFACE (Ajustado para 7.8s)
+========================================================= */
+
+body.tree-event {
+
+    animation:
+        screenShake
+        7.8s
+        cubic-bezier(.36,.07,.19,.97)
+        forwards;
+
+}
+
+
+@keyframes screenShake {
+
+    0% { transform: translate(0, 0); }
+    4% { transform: translate(-5px, 3px); }
+    8% { transform: translate(6px, -4px); }
+    12% { transform: translate(-7px, -2px); }
+    16% { transform: translate(6px, 5px); }
+    20% { transform: translate(-6px, -5px); }
+    24% { transform: translate(7px, 2px); }
+    28% { transform: translate(-6px, 4px); }
+    32% { transform: translate(5px, -4px); }
+    36% { transform: translate(-5px, 5px); }
+    40% { transform: translate(5px, -3px); }
+    45% { transform: translate(-4px, 4px); }
+    50% { transform: translate(4px, -3px); }
+    56% { transform: translate(-3px, 3px); }
+    62% { transform: translate(3px, -2px); }
+    68% { transform: translate(-2px, 2px); }
+    74% { transform: translate(2px, -1px); }
+    82% { transform: translate(-1px, 1px); }
+    90% { transform: translate(1px, -1px); }
+    100% { transform: translate(0, 0); }
+
+}
+
+
+/* =========================================================
+   ÁREA PRINCIPAL
+========================================================= */
+
+.container {
+
+    width: 100%;
+    min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    padding-top: 35px;
+    padding-bottom: 100px;
+}
+
+
+/* =========================================================
+   ÁREA DA FLOR
+========================================================= */
+
+.flower-area {
+
+    position: relative;
+
+    width: min(700px, 96vw);
+
+    height: 600px;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: flex-start;
+}
+
+
+.flower {
+
+    width: min(650px, 94vw);
+
+    height: 600px;
+
+    display: block;
+
+    user-select: none;
+
+    overflow: visible;
+}
+
+
+.flower-art {
+
+    animation:
+        breathing
+        7s
+        ease-in-out
+        infinite;
+}
+
+
+@keyframes breathing {
+
+    0% { opacity: .72; }
+    50% { opacity: .92; }
+    100% { opacity: .72; }
+
+}
+
+
+/* =========================================================
+   PÉTALAS
+========================================================= */
+
+.petal {
+
+    cursor: pointer;
+
+    pointer-events: all;
+
+    transform-box:
+        fill-box;
+
+    transform-origin:
+        center;
+}
+
+
+.petal:hover {
+
+    filter:
+        brightness(1.8);
+}
+
+
+/* =========================================================
+   CORES TEMPORÁRIAS
+========================================================= */
+
+.flower.energy .flower-art {
+
+    filter:
+        sepia(1)
+        saturate(9)
+        hue-rotate(160deg)
+        brightness(1.15)
+        contrast(1.05);
+}
+
+
+.flower.light .flower-art {
+
+    filter:
+        sepia(1)
+        saturate(9)
+        hue-rotate(335deg)
+        brightness(1.18)
+        contrast(1.05);
+}
+
+
+.flower.knowledge .flower-art {
+
+    filter:
+        sepia(1)
+        saturate(8)
+        hue-rotate(65deg)
+        brightness(1.12)
+        contrast(1.05);
+}
+
+
+/* =========================================================
+   QUEDA DAS PÉTALAS
+========================================================= */
+
+.petal.falling {
+
+    animation:
+        petalFall
+        2.7s
+        cubic-bezier(.55,.05,.8,.2)
+        forwards;
+
+    pointer-events: none;
+}
+
+
+@keyframes petalFall {
+
+    0% {
+
+        opacity: 1;
+
+        transform:
+            translate(0, 0)
+            rotate(0deg);
+    }
+
+    20% { opacity: .95; }
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translate(
+                var(--fall-x),
+                470px
+            )
+            rotate(var(--fall-rotation));
+    }
+
+}
+
+
+/* =========================================================
+   RETORNO DAS PÉTALAS
+========================================================= */
+
+.petal.returning {
+
+    opacity: 0;
+
+    animation:
+        petalReturn
+        2.5s
+        cubic-bezier(.2,.8,.4,1)
+        forwards;
+}
+
+
+@keyframes petalReturn {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translate(
+                var(--fall-x),
+                470px
+            )
+            rotate(var(--fall-rotation));
+    }
+
+    25% { opacity: .25; }
+    65% { opacity: .75; }
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            translate(0, 0)
+            rotate(0deg);
+    }
+
+}
+
+
+/* =========================================================
+   RELÓGIO
+========================================================= */
+
+.clock {
+
+    position: absolute;
+
+    left: calc(50% + 205px);
+
+    top: 210px;
+
+    width: 115px;
+    height: 115px;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    transition:
+        opacity .4s ease;
+}
+
+
+.clock.visible {
+
+    opacity: .85;
+}
+
+
+.clock-hands {
+
+    transform-origin:
+        60px 60px;
+}
+
+
+.clock.forward .clock-hands {
+
+    animation:
+        clockForward
+        5s
+        linear
+        forwards;
+}
+
+
+.clock.backward .clock-hands {
+
+    animation:
+        clockBackward
+        1.8s
+        cubic-bezier(.3,.7,.4,1)
+        forwards;
+}
+
+
+@keyframes clockForward {
+
+    from {
+        transform:
+            rotate(0deg);
+    }
+
+    to {
+        transform:
+            rotate(720deg);
+    }
+
+}
+
+
+@keyframes clockBackward {
+
+    from {
+        transform:
+            rotate(0deg);
+    }
+
+    to {
+        transform:
+            rotate(-720deg);
+    }
+
+}
+
+
+/* =========================================================
+   RELÓGIO QUEBRADO
+========================================================= */
+
+.clock.broken {
+
+    opacity: .35;
+
+    filter:
+        contrast(.75)
+        brightness(.8);
+}
+
+
+.clock.broken .clock-hands {
+
+    animation: none;
+
+}
+
+
+.clock-cracks {
+
+    opacity: 0;
+
+}
+
+
+.clock.broken .clock-cracks {
+
+    opacity: 1;
+
+}
+
+
+.clock-crack-line {
+
+    stroke: #777;
+
+    stroke-width: 2;
+
+    stroke-linecap: round;
+
+}
+
+
+/* =========================================================
+   BROTO / SEMENTE
+========================================================= */
+
+.seedling {
+
+    position: absolute;
+
+    left: calc(50% + 215px);
+
+    top: 475px;
+
+    width: 130px;
+
+    height: 120px;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    overflow: visible;
+}
+
+
+.seedling.visible {
+
+    opacity: 1;
+}
+
+
+.seed-ground {
+
+    opacity: 0;
+}
+
+
+.seedling.grounded .seed-ground {
+
+    animation:
+        groundAppear
+        .7s
+        ease-out
+        forwards;
+}
+
+
+@keyframes groundAppear {
+
+    from { opacity: 0; }
+    to { opacity: .65; }
+
+}
+
+
+.seed {
+
+    transform:
+        translateY(-90px);
+
+    opacity: 0;
+}
+
+
+.seedling.falling .seed {
+
+    animation:
+        seedFall
+        1.8s
+        cubic-bezier(.45,.05,.55,.95)
+        forwards;
+}
+
+
+@keyframes seedFall {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            translateY(-90px)
+            rotate(-15deg);
+    }
+
+    20% { opacity: 1; }
+
+    80% {
+
+        transform:
+            translateY(0)
+            rotate(8deg);
+    }
+
+    100% {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            rotate(0deg);
+    }
+
+}
+
+
+/* =========================================================
+   CAULE DO BROTO
+========================================================= */
+
+.sprout-stem {
+
+    stroke:
+        url(#seedDots);
+
+    stroke-width:
+        5;
+
+    stroke-linecap:
+        round;
+
+    opacity: 0;
+}
+
+
+.seedling.sprouting .sprout-stem {
+
+    animation:
+        stemGrow
+        1.2s
+        ease-out
+        forwards;
+}
+
+
+@keyframes stemGrow {
+
+    from {
+
+        opacity: 0;
+
+        stroke-dasharray:
+            0 100;
+    }
+
+    to {
+
+        opacity: .9;
+
+        stroke-dasharray:
+            100 0;
+    }
+
+}
+
+
+/* =========================================================
+   FOLHAS DO BROTO
+========================================================= */
+
+.sprout-left,
+.sprout-right {
+
+    opacity: 0;
+
+    transform-box:
+        fill-box;
+}
+
+
+.seedling.sprouting .sprout-left {
+
+    animation:
+        sproutLeft
+        1.4s
+        cubic-bezier(.2,.8,.3,1)
+        forwards;
+
+    animation-delay:
+        .25s;
+}
+
+
+.seedling.sprouting .sprout-right {
+
+    animation:
+        sproutRight
+        1.4s
+        cubic-bezier(.2,.8,.3,1)
+        forwards;
+
+    animation-delay:
+        .45s;
+}
+
+
+@keyframes sproutLeft {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            rotate(25deg)
+            scale(0);
+
+        transform-origin:
+            bottom right;
+    }
+
+    100% {
+
+        opacity: .9;
+
+        transform:
+            rotate(-32deg)
+            scale(1);
+
+        transform-origin:
+            bottom right;
+    }
+
+}
+
+
+@keyframes sproutRight {
+
+    0% {
+
+        opacity: 0;
+
+        transform:
+            rotate(-25deg)
+            scale(0);
+
+        transform-origin:
+            bottom left;
+    }
+
+    100% {
+
+        opacity: .9;
+
+        transform:
+            rotate(32deg)
+            scale(1);
+
+        transform-origin:
+            bottom left;
+    }
+
+}
+
+
+/* =========================================================
+   CAMPO DE RESPOSTA
+========================================================= */
+
+.input-area {
+
+    width: min(450px, 78vw);
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    margin-top: 5px;
+
+    position: relative;
+}
+
+
+.dots {
+
+    color: #777;
+
+    font-size: 13px;
+
+    letter-spacing: 5px;
+
+    margin-bottom: 10px;
+}
+
+
+#answer {
+
+    width: 100%;
+
+    height: 32px;
+
+    padding: 4px 10px;
+
+    background: transparent;
+
+    border: none;
+
+    border-bottom: 1px solid #444;
+
+    outline: none;
+
+    color: #ddd;
+
+    text-align: center;
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 16px;
+
+    caret-color: #aaa;
+
+    transition:
+        border-color .3s ease;
+}
+
+
+#answer:focus {
+
+    border-bottom-color:
+        #aaa;
+}
+
+
+#answer::placeholder {
+
+    color: #444;
+}
+
+
+#message {
+
+    min-height: 18px;
+
+    height: auto;
+
+    max-width: 100%;
+
+    margin-top: 6px;
+
+    color: #555;
+
+    font-size: 10px;
+
+    line-height: 1.5;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   BOTÃO
+========================================================= */
+
+.button-area {
+
+    margin-top: 38px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    cursor: pointer;
+
+    user-select: none;
+
+    outline: none;
+
+    position: relative;
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition:
+        opacity .8s ease;
+}
+
+
+.button-area.available {
+
+    opacity: 1;
+
+    visibility: visible;
+}
+
+
+.ascii-button {
+
+    width: 180px;
+
+    height: 60px;
+
+    border:
+        1px dashed #777;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    color: #aaa;
+
+    font-size: 21px;
+
+    transition:
+
+        transform .15s ease,
+        border-color .25s ease,
+        color .25s ease,
+        box-shadow .25s ease;
+}
+
+
+.button-text {
+
+    margin-top: 12px;
+
+    color: #555;
+
+    font-size: 10px;
+
+    letter-spacing: 1px;
+}
+
+
+.button-area:hover .ascii-button {
+
+    color: #fff;
+
+    border-color: #aaa;
+}
+
+
+.button-area:hover .button-text {
+
+    color: #777;
+}
+
+
+.button-area:active .ascii-button {
+
+    transform:
+        scale(.95);
+}
+
+
+.button-area.pressed .ascii-button {
+
+    color: #fff;
+
+    border-color: #ddd;
+
+    box-shadow:
+        0 0 14px rgba(255,255,255,.08);
+}
+
+
+/* =========================================================
+   REVELAÇÃO MORSE
+========================================================= */
+
+.revelation {
+
+    width: min(900px, 92vw);
+
+    margin-top: 65px;
+
+    text-align: center;
+
+    opacity: 0;
+
+    max-height: 0;
+
+    overflow: hidden;
+
+    transform:
+        translateY(12px);
+
+    transition:
+
+        opacity 1.2s ease,
+        transform 1.2s ease,
+        max-height 1.2s ease;
+}
+
+
+.revelation.visible {
+
+    opacity: 1;
+
+    max-height: 500px;
+
+    transform:
+        translateY(0);
+}
+
+
+.revelation-title {
+
+    color: #ddd;
+
+    font-size: 15px;
+
+    letter-spacing: .3px;
+
+    margin-bottom: 25px;
+}
+
+
+.morse {
+
+    color: #aaa;
+
+    font-family:
+        "Courier New",
+        monospace;
+
+    font-size: 13px;
+
+    line-height: 2;
+
+    word-spacing: 4px;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   QUEDA DA INTERFACE
+========================================================= */
+
+.container.darkness-fall .input-area {
+
+    animation:
+        interfaceFall
+        2.4s
+        cubic-bezier(.55,.05,.8,.2)
+        .15s
+        forwards;
+}
+
+
+.container.darkness-fall .button-area {
+
+    animation:
+        interfaceFall
+        2.4s
+        cubic-bezier(.55,.05,.8,.2)
+        .45s
+        forwards;
+}
+
+
+.container.darkness-fall .revelation {
+
+    animation:
+        interfaceFall
+        2.6s
+        cubic-bezier(.55,.05,.8,.2)
+        .25s
+        forwards;
+
+    transition: none;
+}
+
+
+@keyframes interfaceFall {
+
+    0% {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            rotate(0deg);
+    }
+
+    100% {
+
+        opacity: 0;
+
+        transform:
+            translate(
+                var(--interface-x),
+                500px
+            )
+            rotate(
+                var(--interface-rotation)
+            );
+    }
+
+}
+
+
+.input-area {
+
+    --interface-x: -35px;
+    --interface-rotation: -3deg;
+}
+
+
+.button-area {
+
+    --interface-x: 25px;
+    --interface-rotation: 4deg;
+}
+
+
+.revelation {
+
+    --interface-x: -20px;
+    --interface-rotation: -2deg;
+}
+
+
+/* =========================================================
+   MENSAGEM FINAL
+========================================================= */
+
+.final-message {
+
+    position: fixed;
+
+    left: 50%;
+    top: 50%;
+
+    width: min(750px, 90vw);
+
+    transform:
+        translate(-50%, -50%);
+
+    text-align: center;
+
+    color: #aaa;
+
+    font-size: 14px;
+
+    line-height: 2.4;
+
+    letter-spacing: .4px;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    z-index: 50;
+
+    transition:
+        opacity 2s ease;
+}
+
+
+.final-message.visible {
+
+    opacity: 1;
+}
+
+
+/* =========================================================
+   ÁRVORE GIGANTE (DUAS CAMADAS INICIANDO DO TOPO)
+========================================================= */
+
+.world-tree {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0;
+}
+
+.world-tree.active {
+    opacity: 1;
+}
+
+/* Camada de fundo (primeira) - Inicia do topo e desce */
+.tree-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://i.imgur.com/kHOderd.jpeg');
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    clip-path: circle(0% at 50% 0%);
+    transition: opacity 7s ease 0.4s, clip-path 7s ease 0.4s;
+}
+
+/* Camada de frente (segunda) - Inicia do topo e desce, começa 0.4s depois da primeira */
+.tree-fg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://i.imgur.com/kHOderd.jpeg');
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    clip-path: circle(0% at 50% 0%);
+    transition: opacity 7s ease 0.8s, clip-path 7s ease 0.8s;
+}
+
+/* Ativação das camadas */
+.world-tree.active .tree-bg {
+    opacity: 0.3;
+    clip-path: circle(150% at 50% 0%);
+}
+
+.world-tree.active .tree-fg {
+    opacity: 1;
+    clip-path: circle(150% at 50% 0%);
+}
+
+
+/* =========================================================
+   FOLHAS QUE CAEM (NOVO FORMATO PONTILHADO + DELAYS MAIORES)
+========================================================= */
+
+.falling-leaf {
+    position: absolute;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    width: 80px;
+    height: 70px;
+}
+
+#leaf1 { top: -100px; left: 780px; }
+#leaf2 { top: -80px; left: 1150px; }
+#leaf3 { top: -60px; left: 950px; }
+#leaf4 { top: -90px; left: 650px; }
+#leaf5 { top: -70px; left: 1300px; }
+#leaf6 { top: -50px; left: 850px; }
+
+.world-tree.active .falling-leaf {
+    animation: leafFall 3s ease-in forwards;
+}
+
+/* Aumentei o espaçamento entre as folhas (0.6s) e o delay inicial (4.5s) */
+.world-tree.active #leaf1 { animation-delay: 4.5s; }
+.world-tree.active #leaf2 { animation-delay: 5.1s; }
+.world-tree.active #leaf3 { animation-delay: 5.7s; }
+.world-tree.active #leaf4 { animation-delay: 6.3s; }
+.world-tree.active #leaf5 { animation-delay: 6.9s; }
+.world-tree.active #leaf6 { animation-delay: 7.5s; }
+
+@keyframes leafFall {
+    0% { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+    10% { opacity: 1; }
+    100% { opacity: 1; transform: translate(80px, 1100px) rotate(220deg); }
+}
+
+
+/* =========================================================
+   FLOR DESAPARECE DURANTE O SURGIMENTO DA ÁRVORE
+========================================================= */
+
+.flower-area {
+    transition: opacity 1.2s ease, transform 1.2s ease;
+}
+
+body.tree-event .flower-area {
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none;
+}
+
+/* =========================================================
+   ÁRVORE REMOVE A INTERFACE
+========================================================= */
+
+body.tree-event .input-area,
+body.tree-event .button-area,
+body.tree-event .revelation,
+body.tree-event .seedling,
+body.tree-event .clock {
+
+    opacity: 0 !important;
+
+    pointer-events: none !important;
+}
+
+
+body.tree-event #answer {
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+
+@media (max-width: 900px) {
+
+    .clock {
+
+        left: auto;
+
+        right: 3vw;
+    }
+
+
+    .seedling {
+
+        left: auto;
+
+        right: 3vw;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .container {
+
+        padding-top: 15px;
+    }
+
+
+    .flower-area {
+
+        height: 540px;
+    }
+
+
+    .flower {
+
+        width: 98vw;
+
+        height: 540px;
+    }
+
+
+    .input-area {
+
+        width: 82vw;
+    }
+
+
+    .button-area {
+
+        margin-top: 30px;
+    }
+
+
+    .revelation {
+
+        margin-top: 50px;
+    }
+
+
+    .revelation-title {
+
+        font-size: 12px;
+    }
+
+
+    .morse {
+
+        font-size: 10px;
+
+        line-height: 1.8;
+    }
+
+
+    #message {
+
+        font-size: 9px;
+    }
+
+
+    .clock {
+
+        width: 85px;
+
+        height: 85px;
+
+        right: 0;
+
+        top: 190px;
+    }
+
+
+    .seedling {
+
+        width: 105px;
+
+        height: 100px;
+
+        right: 0;
+
+        top: 430px;
+    }
+
+}
+
+</style>
+
 </head>
+
 
 <body>
 
-<div class="container">
+<div class="start-screen" id="startScreen">
 
-    <!-- =========================
-         FLOR
-    ========================= -->
+    <button
+        class="start-button"
+        id="startButton"
+    >
+        INICIAR
+    </button>
 
-    <div class="flower">
+</div>
 
-             .-.
-          .-'   '-.
-        .'         '.
-       /    .-.-.    \
-      ;    /     \    ;
-      |   |   🌸   |   |
-      ;    \     /    ;
-       \    '-.-'    /
-        '.         .'
-          '-.   .-'
-             | |
-          ___| |___
-        .'         '.
-       /   .       . \
-      /   / \     / \ \
-     ;   /   \   /   \  ;
-     |  /     \ /     \ |
-     ; /       V       \;
-      \               /
-       '.           .'
-         '-._____.-'
-             |||
-             |||
-             |||
-             |||
-             |||
-             |||
-    </div>
+<audio
+    id="introMusic"
+    preload="auto"
+>
+    <source
+     src="https://github.com/Oizus0/varmetale.github.io/raw/refs/heads/main/VENTO%20SFX.mp3" 
+     type="audio/mpeg"
+    >
+</audio>
+
+<div
+    class="container"
+    id="container"
+>
 
 
-    <!-- =========================
-         CAMPO DE RESPOSTA
-    ========================= -->
+<!-- =====================================================
+     FLOR
+===================================================== -->
 
-    <div class="answer-area">
+<div class="flower-area">
 
-        <input
-            type="text"
-            id="answer"
-            placeholder="..."
-            autocomplete="off"
-            spellcheck="false"
+
+<svg
+    class="flower"
+    id="flower"
+    viewBox="0 0 700 600"
+    xmlns="http://www.w3.org/2000/svg"
+>
+
+    <defs>
+
+        <pattern
+            id="dots"
+            width="5"
+            height="5"
+            patternUnits="userSpaceOnUse"
         >
 
-        <div class="message" id="message"></div>
+            <circle
+                cx="2"
+                cy="2"
+                r="0.85"
+                fill="#ddd"
+            />
 
-    </div>
+        </pattern>
 
 
-    <!-- =========================
-         ALAVANCA
-    ========================= -->
+        <pattern
+            id="fineDots"
+            width="4"
+            height="4"
+            patternUnits="userSpaceOnUse"
+        >
 
-    <div
-        class="lever-container"
-        id="leverContainer"
-        title="Puxar"
+            <circle
+                cx="2"
+                cy="2"
+                r="0.65"
+                fill="#aaa"
+            />
+
+        </pattern>
+
+    </defs>
+
+
+    <g
+        class="flower-art"
+        fill="url(#dots)"
     >
 
-        <div class="lever normal" id="lever">
 
-             ______
-            |      |
-            |      |
-            |______|
-                \
-                 \
-                  \
-                   \
-                    \
-                     O
-                    /|\
-                    / \
-        </div>
+        <path
+            class="petal"
+            data-petal="1"
+            style="
+                --fall-x: -90px;
+                --fall-rotation: -35deg;
+            "
+            d="
+                M350 220
+                C300 190 250 130 275 65
+                C295 18 350 32 365 75
+                C378 115 367 175 350 220
+                Z
+            "
+        />
+
+
+        <path
+            class="petal"
+            data-petal="2"
+            style="
+                --fall-x: 95px;
+                --fall-rotation: 40deg;
+            "
+            d="
+                M355 220
+                C385 155 430 70 500 65
+                C545 62 548 105 525 145
+                C495 195 425 220 355 220
+                Z
+            "
+        />
+
+
+        <path
+            class="petal"
+            data-petal="3"
+            style="
+                --fall-x: 130px;
+                --fall-rotation: 55deg;
+            "
+            d="
+                M365 215
+                C445 165 545 150 585 195
+                C615 230 570 265 520 275
+                C455 288 400 260 365 215
+                Z
+            "
+        />
+
+
+        <path
+            class="petal"
+            data-petal="4"
+            style="
+                --fall-x: 75px;
+                --fall-rotation: 70deg;
+            "
+            d="
+                M365 220
+                C440 245 500 285 500 340
+                C500 390 455 405 420 365
+                C390 330 370 270 365 220
+                Z
+            "
+        />
+
+
+        <path
+            class="petal"
+            data-petal="5"
+            style="
+                --fall-x: -115px;
+                --fall-rotation: -65deg;
+            "
+            d="
+                M345 220
+                C325 290 300 375 250 390
+                C205 400 185 355 205 315
+                C225 270 285 230 345 220
+                Z
+            "
+        />
+
+
+        <path
+            class="petal"
+            data-petal="6"
+            style="
+                --fall-x: -145px;
+                --fall-rotation: -50deg;
+            "
+            d="
+                M345 220
+                C280 250 190 270 145 235
+                C110 207 130 165 180 160
+                C245 155 305 185 345 220
+                Z
+            "
+        />
+
+
+        <path
+            class="petal"
+            data-petal="7"
+            style="
+                --fall-x: 15px;
+                --fall-rotation: 20deg;
+            "
+            d="
+                M350 220
+                C320 165 325 95 360 65
+                C395 35 425 65 415 110
+                C405 155 375 195 350 220
+                Z
+            "
+        />
+
+
+        <ellipse
+            cx="352"
+            cy="218"
+            rx="45"
+            ry="40"
+            fill="url(#fineDots)"
+        />
+
+
+        <path
+            d="
+                M350 235
+                C365 300
+                390 350
+                390 405
+                C390 455
+                365 510
+                345 565
+            "
+            fill="none"
+            stroke="url(#dots)"
+            stroke-width="12"
+            stroke-linecap="round"
+        />
+
+
+        <path
+            d="
+                M380 395
+                C440 365 500 380 515 420
+                C475 435 420 430 380 395
+                Z
+            "
+        />
+
+
+    </g>
+
+</svg>
+
+
+<!-- =====================================================
+     RELÓGIO
+===================================================== -->
+
+<svg
+    class="clock"
+    id="clock"
+    viewBox="0 0 120 120"
+    xmlns="http://www.w3.org/2000/svg"
+>
+
+    <defs>
+
+        <pattern
+            id="clockDots"
+            width="4"
+            height="4"
+            patternUnits="userSpaceOnUse"
+        >
+
+            <circle
+                cx="2"
+                cy="2"
+                r="0.75"
+                fill="#aaa"
+            />
+
+        </pattern>
+
+    </defs>
+
+
+    <circle
+        cx="60"
+        cy="60"
+        r="42"
+        fill="none"
+        stroke="url(#clockDots)"
+        stroke-width="7"
+    />
+
+
+    <g
+        class="clock-hands"
+    >
+
+        <circle
+            cx="60"
+            cy="60"
+            r="5"
+            fill="url(#clockDots)"
+        />
+
+
+        <path
+            d="
+                M60 60
+                L60 38
+            "
+            stroke="url(#clockDots)"
+            stroke-width="5"
+            stroke-linecap="round"
+        />
+
+
+        <path
+            d="
+                M60 60
+                L78 68
+            "
+            stroke="url(#clockDots)"
+            stroke-width="4"
+            stroke-linecap="round"
+        />
+
+    </g>
+
+
+    <circle
+        cx="60"
+        cy="18"
+        r="2"
+        fill="#aaa"
+    />
+
+    <circle
+        cx="102"
+        cy="60"
+        r="2"
+        fill="#aaa"
+    />
+
+    <circle
+        cx="60"
+        cy="102"
+        r="2"
+        fill="#aaa"
+    />
+
+    <circle
+        cx="18"
+        cy="60"
+        r="2"
+        fill="#aaa"
+    />
+
+
+    <g
+        class="clock-cracks"
+    >
+
+        <path
+            class="clock-crack-line"
+            d="
+                M28 34
+                L43 48
+                L38 60
+                L51 71
+            "
+        />
+
+        <path
+            class="clock-crack-line"
+            d="
+                M88 28
+                L77 43
+                L84 55
+                L70 68
+            "
+        />
+
+        <path
+            class="clock-crack-line"
+            d="
+                M61 60
+                L54 72
+                L61 87
+            "
+        />
+
+    </g>
+
+</svg>
+
+
+<!-- =====================================================
+     BROTO
+===================================================== -->
+
+<svg
+    class="seedling"
+    id="secondFlower"
+    viewBox="0 0 130 120"
+    xmlns="http://www.w3.org/2000/svg"
+>
+
+    <defs>
+
+        <pattern
+            id="seedDots"
+            width="4"
+            height="4"
+            patternUnits="userSpaceOnUse"
+        >
+
+            <circle
+                cx="2"
+                cy="2"
+                r="0.75"
+                fill="#aaa"
+            />
+
+        </pattern>
+
+    </defs>
+
+
+    <path
+        class="seed-ground"
+        d="
+            M10 103
+            C35 101
+            75 101
+            120 103
+        "
+        fill="none"
+        stroke="url(#seedDots)"
+        stroke-width="4"
+        stroke-linecap="round"
+    />
+
+
+    <ellipse
+        class="seed"
+        cx="65"
+        cy="88"
+        rx="8"
+        ry="11"
+        fill="url(#seedDots)"
+    />
+
+
+    <path
+        class="sprout-stem"
+        d="
+            M65 84
+            C65 73
+            64 65
+            64 55
+        "
+        fill="none"
+    />
+
+
+    <path
+        class="sprout-left"
+        d="
+            M64 63
+            C51 48
+            34 39
+            20 45
+            C31 58
+            46 63
+            64 63
+            Z
+        "
+        fill="url(#seedDots)"
+    />
+
+
+    <path
+        class="sprout-right"
+        d="
+            M64 58
+            C77 43
+            95 34
+            110 42
+            C100 55
+            84 61
+            64 58
+            Z
+        "
+        fill="url(#seedDots)"
+    />
+
+</svg>
+
+
+</div>
+
+
+<!-- =====================================================
+     CAMPO
+===================================================== -->
+
+<div class="input-area">
+
+    <div class="dots">
+        ...
+    </div>
+
+    <input
+        id="answer"
+        type="text"
+        autocomplete="off"
+        spellcheck="false"
+        aria-label="Resposta"
+    >
+
+    <div id="message"></div>
+
+</div>
+
+
+<!-- =====================================================
+     BOTÃO
+===================================================== -->
+
+<div
+    class="button-area"
+    id="button"
+    tabindex="0"
+    role="button"
+>
+
+    <div class="ascii-button">
+        ○
+    </div>
+
+    <div class="button-text">
+        SE ESTIVER CANSADO...
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MORSE
+===================================================== -->
+
+<div
+    class="revelation"
+    id="revelation"
+>
+
+    <div class="revelation-title">
+
+        A verdade que os antigos enxergam
 
     </div>
 
 
-    <!-- =========================
-         MORSE
-    ========================= -->
+    <div
+        class="morse"
+        id="morse"
+    ></div>
 
-    <div class="morse" id="morse">
+</div>
 
-        <div class="morse-title">
-            TRANSMISSÃO DESBLOQUEADA
-        </div>
 
-        <div class="morse-text">
+<!-- =====================================================
+     MENSAGEM FINAL DAS PÉTALAS
+===================================================== -->
 
-            -. .- - ..- .-. .- / -.-. ..- .. --.- ..- . / .-.. .. -... . .-. - .- -.. . -- / -.-. --- -. -.-. . -.. .. - / .- --. . -. -.. .. / --.- ..- --- -.. / .-.. .. -... . - / . -- -- / .- -- --.- ..- . / --- -- -. . ... / . .. / .-. . -.. -.. . -. -.-.
+<div
+    class="final-message"
+    id="finalMessage"
+>
 
-        </div>
-
+    <div>
+        Não mate quem quer lhe ajudar.
     </div>
+
+    <div>
+        Você pode ignorar a resposta "correta"...
+    </div>
+
+    <div>
+        E me contar por quais nomes você se interessa...
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     ÁRVORE GIGANTE (DUAS CAMADAS + NOVAS FOLHAS)
+===================================================== -->
+
+<div
+    class="world-tree"
+    id="worldTree"
+>
+    <div class="tree-bg"></div>
+    <div class="tree-fg"></div>
+
+    <!-- Padrão de pontos para as folhas -->
+    <svg width="0" height="0" style="position:absolute">
+        <defs>
+            <pattern id="leafPattern" width="4" height="4" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="0.6" fill="#ddd" />
+            </pattern>
+        </defs>
+    </svg>
+
+    <!-- Folhas com novo formato e preenchimento pontilhado -->
+    <svg class="falling-leaf" id="leaf1" viewBox="0 0 130 120">
+        <path d="M65 5 C95 35, 95 85, 65 115 C35 85, 35 35, 65 5 Z" fill="url(#leafPattern)"/>
+        <path d="M65 5 L65 115" stroke="#888" stroke-width="2"/>
+    </svg>
+    <svg class="falling-leaf" id="leaf2" viewBox="0 0 130 120">
+        <path d="M65 5 C95 35, 95 85, 65 115 C35 85, 35 35, 65 5 Z" fill="url(#leafPattern)"/>
+        <path d="M65 5 L65 115" stroke="#888" stroke-width="2"/>
+    </svg>
+    <svg class="falling-leaf" id="leaf3" viewBox="0 0 130 120">
+        <path d="M65 5 C95 35, 95 85, 65 115 C35 85, 35 35, 65 5 Z" fill="url(#leafPattern)"/>
+        <path d="M65 5 L65 115" stroke="#888" stroke-width="2"/>
+    </svg>
+    <svg class="falling-leaf" id="leaf4" viewBox="0 0 130 120">
+        <path d="M65 5 C95 35, 95 85, 65 115 C35 85, 35 35, 65 5 Z" fill="url(#leafPattern)"/>
+        <path d="M65 5 L65 115" stroke="#888" stroke-width="2"/>
+    </svg>
+    <svg class="falling-leaf" id="leaf5" viewBox="0 0 130 120">
+        <path d="M65 5 C95 35, 95 85, 65 115 C35 85, 35 35, 65 5 Z" fill="url(#leafPattern)"/>
+        <path d="M65 5 L65 115" stroke="#888" stroke-width="2"/>
+    </svg>
+    <svg class="falling-leaf" id="leaf6" viewBox="0 0 130 120">
+        <path d="M65 5 C95 35, 95 85, 65 115 C35 85, 35 35, 65 5 Z" fill="url(#leafPattern)"/>
+        <path d="M65 5 L65 115" stroke="#888" stroke-width="2"/>
+    </svg>
+</div>
+
 
 </div>
 
 
 <script>
 
-    /* =========================
-       RESPOSTA
-    ========================= */
+/* =========================================================
+   INICIALIZAÇÃO
+========================================================= */
 
-    const answer = document.getElementById("answer");
-    const message = document.getElementById("message");
+const introMusic =
+    document.getElementById("introMusic");
 
+const INTRO_DURATION = 6000; // 6 segundos
 
-    answer.addEventListener("keydown", function(event) {
+function startIntro() {
 
-        if (event.key === "Enter") {
+    // Tenta iniciar a música
+    introMusic.currentTime = 0;
 
-            const value = answer.value.trim();
+    const playPromise =
+        introMusic.play();
+
+    if (playPromise !== undefined) {
+
+        playPromise.catch(function() {
 
             /*
-             * A palavra correta.
+             * O navegador pode bloquear
+             * autoplay com som.
+             *
+             * Mesmo assim, a inicialização
+             * visual continua normalmente.
              */
 
-            if (value === "Vita") {
+        });
 
-                /*
-                 * TROQUE ESTE ENDEREÇO PELO SITE
-                 * QUE VAMOS CRIAR DEPOIS.
-                 */
+    }
 
-                window.location.href = "https://SEU-SITE-AQUI.com";
+    // Depois de 6 segundos, revela o jogo
+    setTimeout(
+        function() {
 
-            } else {
+            document.body.classList.add(
+                "intro-complete"
+            );
 
-                message.textContent = "...";
+        },
+        INTRO_DURATION
+    );
+}
 
-                setTimeout(() => {
-                    message.textContent = "";
-                }, 2000);
+
+/* Inicia quando a página estiver carregada */
+
+const startScreen =
+    document.getElementById("startScreen");
+
+const startButton =
+    document.getElementById("startButton");
+
+
+function startIntro() {
+
+    introMusic.currentTime = 0;
+
+    const playPromise =
+        introMusic.play();
+
+    if (playPromise !== undefined) {
+
+        playPromise.catch(function(error) {
+
+            console.log(
+                "Não foi possível iniciar o áudio:",
+                error
+            );
+
+        });
+
+    }
+
+
+    setTimeout(
+        function() {
+
+            document.body.classList.add(
+                "intro-complete"
+            );
+
+        },
+        INTRO_DURATION
+    );
+
+}
+
+
+startButton.addEventListener(
+    "click",
+    function() {
+
+        /*
+         * O clique do usuário acontece
+         * imediatamente antes do play().
+         * Chrome/Edge normalmente permitem
+         * o áudio nesse contexto.
+         */
+
+        startIntro();
+
+
+        startScreen.classList.add(
+            "hidden"
+        );
+
+
+        setTimeout(
+            function() {
+
+                startScreen.style.display =
+                    "none";
+
+            },
+            1500
+        );
+
+    }
+);
+
+/* =========================================================
+   FRASE / MORSE
+========================================================= */
+
+const latinPhrase =
+"Natura cuique libertatem concedit agendi quod libet, eamque omnes ei reddent.";
+
+
+const morseTable = {
+
+    A: ".-",
+    B: "-...",
+    C: "-.-.",
+    D: "-..",
+    E: ".",
+    F: "..-.",
+    G: "--.",
+    H: "....",
+    I: "..",
+    J: ".---",
+    K: "-.-",
+    L: ".-..",
+    M: "--",
+    N: "-.",
+    O: "---",
+    P: ".--.",
+    Q: "--.-",
+    R: ".-.",
+    S: "...",
+    T: "-",
+    U: "..-",
+    V: "...-",
+    W: ".--",
+    X: "-..-",
+    Y: "-.--",
+    Z: "--.."
+
+};
+
+
+function toMorse(text) {
+
+    return text
+        .toUpperCase()
+        .split("")
+        .map(function(character) {
+
+            if (
+                character === " "
+            ) {
+
+                return "/";
 
             }
 
+            if (
+                character === "," ||
+                character === "."
+            ) {
+
+                return "";
+
+            }
+
+            return morseTable[character] || "";
+
+        })
+        .filter(function(value) {
+
+            return value !== "";
+
+        })
+        .join(" ");
+
+}
+
+
+document.getElementById("morse").textContent =
+    toMorse(latinPhrase);
+
+
+/* =========================================================
+   ELEMENTOS
+========================================================= */
+
+const container =
+    document.getElementById("container");
+
+const flower =
+    document.getElementById("flower");
+
+const answer =
+    document.getElementById("answer");
+
+const message =
+    document.getElementById("message");
+
+const button =
+    document.getElementById("button");
+
+const revelation =
+    document.getElementById("revelation");
+
+const finalMessage =
+    document.getElementById("finalMessage");
+
+const clock =
+    document.getElementById("clock");
+
+const secondFlower =
+    document.getElementById("secondFlower");
+
+const worldTree =
+    document.getElementById("worldTree");
+
+
+const petals =
+    Array.from(
+        document.querySelectorAll(".petal")
+    );
+
+
+/* =========================================================
+   ESTADOS
+========================================================= */
+
+let buttonUnlocked =
+    false;
+
+let fallenPetals =
+    new Set();
+
+
+let inputCount =
+    0;
+
+
+let nameHintUsed =
+    false;
+
+let namePromptShown =
+    false;
+
+let messageTimeout =
+    null;
+
+
+let clockTimeout =
+    null;
+
+
+let inactivityTimer45 =
+    null;
+
+
+let inactivityTimer30 =
+    null;
+
+
+let inactivityTimer10 =
+    null;
+
+
+let revealed =
+    false;
+
+
+let finalMessageShown =
+    false;
+
+
+let specialResponseUsed =
+    false;
+
+
+let darknessActivated =
+    false;
+
+
+let timeCount =
+    0;
+
+
+let timeBroken =
+    false;
+
+
+/*
+   0 = nenhum elemento da sequência
+   1 = Luz
+   2 = Energia
+   3 = Conhecimento
+*/
+
+let elementSequenceIndex =
+    0;
+
+
+let treeEventActivated =
+    false;
+
+
+/* =========================================================
+   RESPOSTAS ESPECIAIS
+========================================================= */
+
+const specialResponses = {
+
+    "hide":
+        "Até onde um mentiroso vai para apagar parte de sua vida?",
+
+    "maliah":
+        "Com tão pouco controle, ela ainda acha que pode mudar alguma coisa",
+
+    "kael":
+        "Deixou tudo acontecer na sua frente, tornou-se cúmplice. Seguirá o mesmo caminho?",
+
+    "raksa":
+        "Apenas mais um outro corpo...",
+
+    "stygian":
+        "Não importa o quanto tente conhecer, o seu limite é biológico",
+
+    "lymna":
+        "Você não é daqui. Coisas \"fora do normal\" podem impactar todos... Negativamente.",
+
+    "fleur":
+        "A flor que se lembra. Lembra-se de tudo, mas esquece sua essência",
+
+    "sigrid":
+        "Sua justiça está acima de si mesma. Cairá pelos outros, jurando pela verdade",
+
+    "advenius":
+        "O limiar entre a coragem e a ignorância é muito pequena. E esse limiar recaiu não somente sobre você, mas também a quem andava a teu lado.",
+
+    "rolland":
+        "Ainda fugindo?...",
+
+    "poder":
+        "O que mais importa nesse continente... Ah sim, e o nome de alguém.",
+
+    "ragnar":
+        "O desejo por uma causa cega. Assim como metade dos outros do Outro Lado...",
+
+    "flor celestial":
+        "Ela sabe de seus segredos, de seus medos e de seus anseios. Ela é o que você mais deseja, é o que você não pode desejar. Ela é o que você já possuiu, e um dia, perdeu",
+
+    "exousia":
+        "Sinônimo de Poder. Ainda tentando imperar nesse mundo através dos fracos... Como uma fraca",
+
+    "lordes":
+        "Não edificam o nosso terreno.",
+
+    "alarham":
+        "Os que residem querem ver o que tem lá fora, os que saem nunca mais retornam...",
+
+    "vida":
+        "Não para você. Para os antigos",
+
+    "resposta":
+        "Diga-me você.",
+
+    "verdade":
+        "Para quem?",
+
+    "varme":
+        "Um organismo... acima de um grande cemitério",
+
+    "flor":
+        "Sim. Mas seja mais criativo...",
+
+    "oi":
+        "... ... ?",
+
+    "luz":
+        "Ainda presente aqui",
+
+    "conhecimento":
+        "Não durará muito tempo",
+
+    "energia":
+        "É o nosso caminho no momento",
+
+    "trevas":
+        "",
+
+    "relicario":
+        "Existem coisas nesse mundo que não podem ser copiadas",
+
+    "borus":
+        "Um caçador que me encontrou. Mas não teve a mesma sorte ao me desencontrar",
+
+    "severo":
+        "Glória? ou Ambição? É um homem, afinal...",
+
+    "fantasma":
+        "Sempre há uma desculpa para fazer o que acha correto. Mesmo não sendo correto...",
+
+    "flor de cristal":
+        "Não se compara ao meu brilho.",
+
+    "cyrus":
+        "Quem?",
+
+    "noah hiraki":
+        "Não gosta de mentiras. Mas vive contando mentiras para si mesmo",
+
+    "humano":
+        "Qualquer um com corpo, alma e mente alinhadas",
+
+    "antigos":
+        "Eles já se foram, pouquíssimos restaram...",
+
+    "hibrido":
+        "Qualquer um com corpo, alma e mente alinhadas... Não há diferença",
+
+    "lorenna":
+        "Não tenho interesse por estes",
+
+    "guinerve":
+        "Não tenho interesse por estes",
+
+    "yrarvos":
+        "Não tenho interesse por estes",
+
+    "milleria":
+        "Não tenho interesse por estes",
+
+    "a grande mente":
+        "Mais um dos que tentam ter semelhança com o poder dos antigos...",
+
+    "geraldo":
+        "???",
+
+    "czar":
+        "Você não se arrepende do que fez... E por que deveria?",
+
+    "alem do horizonte":
+        "Não é o \"outro lado\". Faz parte do nosso terreno",
+
+    "outro lado":
+        "Fora desse cemitério antigo. Em contato com os Quatro",
+
+    "elfos":
+        "Um humano. Com traços a mais. E forte espírito...",
+
+    "abismo":
+        "Um dos mundos em que eu conecto",
+
+    "morte":
+        "Alguns a enganam, mas por quanto tempo?",
+
+    "goblins":
+        "Um humano \"menor\". Alma, corpo e mente não totalmente alinhados...",
+
+    "elementais":
+        "Nascido como a mim. Porém, a vontade é fraca...",
+
+    "noimosyni":
+        "Um reino do outro lado, que está prestes a mudar",
+
+    "mageia":
+        "Um reino do outro lado, que está prestes a ruir",
+
+    "helium":
+        "Um reino do outro lado, que está prestes a se fragmentar",
+
+    "morke":
+        "Terra obscura. Lar da Inveja",
+
+    "kyran":
+        "Alma límpida, tão límpida que beira ao vazio...",
+
+    "renoir":
+        "Ainda não...",
+
+    "yulla":
+        "Uma humana qualquer",
+
+    "yulla kyriarchos":
+        "A Filha do Conhecimento. Prometeu consertar a realidade das coisas \"fora do normal\".",
+
+    "legiao":
+        "Pequeninos...",
+
+    "liga oculta":
+        "Toda árvore tem células mortas dentro de si. E ás vezes, elas são essenciais para a árvore permanecer viva",
+
+    "espirito":
+        "Pode ser o que há dentro de todos. Pode ser os vestígios da Alma de alguém",
+
+    "mente":
+        "O que comanda seu corpo, e faz com ele uma ponte para a sua Alma",
+
+    "alma":
+        "A essência de seu ser. Está por trás de tudo e conecta a sua Mente ao seu Corpo"
+
+};
+
+
+/* =========================================================
+   NOMES
+========================================================= */
+
+const nameGroup = [
+
+    "gah",
+    "gabriel",
+    "mitsu",
+    "isabelle",
+    "caio",
+    "len",
+    "holly",
+    "lanna",
+    "dani",
+    "mateus",
+    "chico",
+    "francisco",
+    "mayra",
+    "may",
+    "mayra shimizu"
+
+
+];
+
+
+/* =========================================================
+   COMANDOS QUE PERDEM UMA PÉTALA
+========================================================= */
+
+const onePetalCommands = [
+
+    "abismo",
+    "morte",
+    "noimosyni",
+    "mageia",
+    "helium",
+    "morke"
+
+];
+
+
+/* =========================================================
+   MENSAGENS
+========================================================= */
+
+function clearMessageTimeout() {
+
+    if (
+        messageTimeout !== null
+    ) {
+
+        clearTimeout(
+            messageTimeout
+        );
+
+        messageTimeout =
+            null;
+
+    }
+
+}
+
+
+function showMessage(text) {
+
+    clearMessageTimeout();
+
+    message.textContent =
+        text;
+
+
+    messageTimeout =
+        setTimeout(
+            function() {
+
+                message.textContent =
+                    "";
+
+                messageTimeout =
+                    null;
+
+            },
+            5000
+        );
+
+}
+
+
+/* =========================================================
+   INATIVIDADE
+========================================================= */
+
+function clearInactivityTimers() {
+
+    if (
+        inactivityTimer45 !== null
+    ) {
+
+        clearTimeout(
+            inactivityTimer45
+        );
+
+        inactivityTimer45 =
+            null;
+
+    }
+
+
+    if (
+        inactivityTimer30 !== null
+    ) {
+
+        clearTimeout(
+            inactivityTimer30
+        );
+
+        inactivityTimer30 =
+            null;
+
+    }
+
+
+    if (
+        inactivityTimer10 !== null
+    ) {
+
+        clearTimeout(
+            inactivityTimer10
+        );
+
+        inactivityTimer10 =
+            null;
+
+    }
+
+}
+
+
+function startInactivitySequence() {
+
+    clearInactivityTimers();
+
+
+    inactivityTimer45 =
+        setTimeout(
+            function() {
+
+                showMessage(
+                    "Em um mundo de possibilidades, você continua inerte?"
+                );
+
+
+                inactivityTimer30 =
+                    setTimeout(
+                        function() {
+
+                            showMessage(
+                                "Muito bem, vou te contar um segredo"
+                            );
+
+
+                            inactivityTimer10 =
+                                setTimeout(
+                                    function() {
+
+                                        showMessage(
+                                            "Se você me contar os quatro elementos primordiais, na ordem em que nasceram, algo grandioso acontecerá. Mas as Trevas estão seladas, deixe-as por último."
+                                        );
+
+                                    },
+                                    10000
+                                );
+
+                        },
+                        30000
+                    );
+
+            },
+            45000
+        );
+
+}
+
+
+startInactivitySequence();
+
+
+/* =========================================================
+   QUALQUER INPUT CANCELA A INATIVIDADE
+========================================================= */
+
+answer.addEventListener(
+    "input",
+    function() {
+
+        clearInactivityTimers();
+
+
+        if (
+            message.textContent !== ""
+        ) {
+
+            clearMessageTimeout();
+
+            message.textContent =
+                "";
+
         }
 
-    });
+    }
+);
 
 
-    /* =========================
-       ALAVANCA
-    ========================= */
+/* =========================================================
+   PÉTALAS
+========================================================= */
 
-    const leverContainer = document.getElementById("leverContainer");
-    const lever = document.getElementById("lever");
-    const morse = document.getElementById("morse");
+function getRemainingPetals() {
+
+    return petals.filter(
+        function(petal) {
+
+            return !fallenPetals.has(
+                petal.dataset.petal
+            );
+
+        }
+    );
+
+}
 
 
-    let pulled = false;
+function losePetal(
+    petal,
+    showFinal = true
+) {
+
+    if (!petal) {
+        return;
+    }
 
 
-    leverContainer.addEventListener("click", function() {
+    const id =
+        petal.dataset.petal;
 
-        if (pulled) {
+
+    if (
+        fallenPetals.has(id)
+    ) {
+
+        return;
+
+    }
+
+
+    fallenPetals.add(id);
+
+
+    petal.classList.remove(
+        "returning"
+    );
+
+
+    void petal.offsetWidth;
+
+
+    petal.classList.add(
+        "falling"
+    );
+
+
+    if (
+        getRemainingPetals().length === 0 &&
+        showFinal
+    ) {
+
+        allPetalsGone();
+
+    }
+
+}
+
+
+function loseOnePetal(
+    showFinal = true
+) {
+
+    const remaining =
+        getRemainingPetals();
+
+
+    if (
+        remaining.length === 0
+    ) {
+
+        return;
+
+    }
+
+
+    const petal =
+        remaining[
+            Math.floor(
+                Math.random() *
+                remaining.length
+            )
+        ];
+
+
+    losePetal(
+        petal,
+        showFinal
+    );
+
+}
+
+
+/* =========================================================
+   CLIQUE NAS PÉTALAS
+========================================================= */
+
+petals.forEach(
+    function(petal) {
+
+        petal.addEventListener(
+            "click",
+            function() {
+
+                losePetal(
+                    petal,
+                    true
+                );
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================================================
+   TODAS AS PÉTALAS
+========================================================= */
+
+function allPetalsGone() {
+
+    setTimeout(
+        function() {
+
+            container.classList.add(
+                "darkness-fall"
+            );
+
+        },
+        600
+    );
+
+
+    if (
+        !specialResponseUsed &&
+        !finalMessageShown
+    ) {
+
+        finalMessageShown =
+            true;
+
+
+        setTimeout(
+            function() {
+
+                finalMessage.classList.add(
+                    "visible"
+                );
+
+            },
+            2500
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   TREVAS
+========================================================= */
+
+function activateDarkness() {
+
+    specialResponseUsed =
+        true;
+
+
+    const remaining =
+        getRemainingPetals();
+
+
+    if (
+        remaining.length === 0
+    ) {
+
+        allPetalsGone();
+
+        return;
+
+    }
+
+
+    remaining.forEach(
+        function(petal, index) {
+
+            setTimeout(
+                function() {
+
+                    losePetal(
+                        petal,
+                        false
+                    );
+
+                },
+                index * 120
+            );
+
+        }
+    );
+
+
+    setTimeout(
+        function() {
+
+            container.classList.add(
+                "darkness-fall"
+            );
+
+        },
+        900
+    );
+
+}
+
+
+/* =========================================================
+   CORES
+========================================================= */
+
+function temporaryColor(
+    colorClass
+) {
+
+    flower.classList.remove(
+        "energy",
+        "light",
+        "knowledge"
+    );
+
+
+    void flower.offsetWidth;
+
+
+    flower.classList.add(
+        colorClass
+    );
+
+
+    setTimeout(
+        function() {
+
+            flower.classList.remove(
+                colorClass
+            );
+
+        },
+        5000
+    );
+
+}
+
+
+/* =========================================================
+   RESTAURAR PÉTALAS
+========================================================= */
+
+function restoreAllPetalsAnimated() {
+
+    const fallen =
+        petals.filter(
+            function(petal) {
+
+                return fallenPetals.has(
+                    petal.dataset.petal
+                );
+
+            }
+        );
+
+
+    if (
+        fallen.length === 0
+    ) {
+
+        return;
+
+    }
+
+
+    fallen.forEach(
+        function(petal) {
+
+            petal.classList.remove(
+                "falling"
+            );
+
+
+            petal.style.opacity =
+                "0";
+
+
+            petal.style.transform =
+                `
+                translate(
+                    ${getComputedStyle(petal)
+                        .getPropertyValue("--fall-x")},
+                    470px
+                )
+                rotate(
+                    ${getComputedStyle(petal)
+                        .getPropertyValue("--fall-rotation")}
+                )
+                `;
+
+
+            void petal.offsetWidth;
+
+
+            petal.classList.add(
+                "returning"
+            );
+
+
+            setTimeout(
+                function() {
+
+                    petal.style.opacity =
+                        "";
+
+                    petal.style.transform =
+                        "";
+
+                },
+                2500
+            );
+
+        }
+    );
+
+
+    setTimeout(
+        function() {
+
+            fallenPetals.clear();
+
+
+            petals.forEach(
+                function(petal) {
+
+                    petal.classList.remove(
+                        "falling",
+                        "returning"
+                    );
+
+                    petal.style.opacity =
+                        "";
+
+                    petal.style.transform =
+                        "";
+
+                }
+            );
+
+
+            finalMessageShown =
+                false;
+
+
+            container.classList.remove(
+                "darkness-fall"
+            );
+
+
+            finalMessage.classList.remove(
+                "visible"
+            );
+
+        },
+        2700
+    );
+
+}
+
+
+/* =========================================================
+   RELÓGIO
+========================================================= */
+
+function resetClockAnimation() {
+
+    clock.classList.remove(
+        "forward",
+        "backward"
+    );
+
+
+    void clock.offsetWidth;
+
+}
+
+
+function breakClock() {
+
+    timeBroken =
+        true;
+
+
+    if (
+        clockTimeout !== null
+    ) {
+
+        clearTimeout(
+            clockTimeout
+        );
+
+        clockTimeout =
+            null;
+
+    }
+
+
+    resetClockAnimation();
+
+
+    clock.classList.add(
+        "visible",
+        "broken"
+    );
+
+}
+
+
+function showClock() {
+
+    if (
+        timeBroken
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        timeCount >= 4
+    ) {
+
+        breakClock();
+
+        return;
+
+    }
+
+
+    resetClockAnimation();
+
+
+    if (
+        fallenPetals.size > 0
+    ) {
+
+        clock.classList.add(
+            "visible",
+            "backward"
+        );
+
+
+        setTimeout(
+            function() {
+
+                restoreAllPetalsAnimated();
+
+
+                clock.classList.remove(
+                    "visible",
+                    "backward"
+                );
+
+            },
+            1800
+        );
+
+
+        return;
+
+    }
+
+
+    clock.classList.add(
+        "visible",
+        "forward"
+    );
+
+
+    clockTimeout =
+        setTimeout(
+            function() {
+
+                clock.classList.remove(
+                    "visible",
+                    "forward"
+                );
+
+
+                secondFlower.classList.add(
+                    "visible"
+                );
+
+
+                setTimeout(
+                    function() {
+
+                        secondFlower.classList.add(
+                            "falling"
+                        );
+
+
+                        setTimeout(
+                            function() {
+
+                                secondFlower.classList.add(
+                                    "grounded"
+                                );
+
+
+                                setTimeout(
+                                    function() {
+
+                                        secondFlower.classList.add(
+                                            "sprouting"
+                                        );
+
+                                    },
+                                    300
+                                );
+
+                            },
+                            1800
+                        );
+
+                    },
+                    100
+                );
+
+            },
+            5000
+        );
+
+}
+
+
+/* =========================================================
+   SEQUÊNCIA DOS QUATRO ELEMENTOS
+========================================================= */
+
+const elementSequence = [
+
+    "luz",
+    "energia",
+    "conhecimento",
+    "trevas"
+
+];
+
+
+function updateElementSequence(key) {
+
+    if (
+        key === elementSequence[0]
+    ) {
+
+        elementSequenceIndex =
+            1;
+
+        return false;
+
+    }
+
+
+    if (
+        key === elementSequence[
+            elementSequenceIndex
+        ]
+    ) {
+
+        elementSequenceIndex++;
+
+    } else {
+
+        elementSequenceIndex =
+            0;
+
+    }
+
+
+    if (
+        elementSequenceIndex ===
+        elementSequence.length
+    ) {
+
+        elementSequenceIndex =
+            0;
+
+        return true;
+
+    }
+
+
+    return false;
+
+}
+
+
+/* =========================================================
+   ÁRVORE
+========================================================= */
+
+function activateTreeEvent() {
+
+    if (
+        treeEventActivated
+    ) {
+
+        return;
+
+    }
+
+
+    treeEventActivated =
+        true;
+
+
+    /*
+       O broto desaparece completamente.
+    */
+
+    secondFlower.classList.remove(
+        "visible",
+        "falling",
+        "grounded",
+        "sprouting"
+    );
+
+
+    /*
+       Relógio deixa de interferir.
+    */
+
+    if (
+        clockTimeout !== null
+    ) {
+
+        clearTimeout(
+            clockTimeout
+        );
+
+        clockTimeout =
+            null;
+
+    }
+
+
+    clock.classList.remove(
+        "visible",
+        "forward",
+        "backward"
+    );
+
+
+    /*
+       Remove qualquer estado anterior.
+    */
+
+    container.classList.remove(
+        "darkness-fall"
+    );
+
+
+    finalMessage.classList.remove(
+        "visible"
+    );
+
+
+    /*
+       Reinicia as animações da árvore.
+    */
+
+    worldTree.classList.remove(
+        "active"
+    );
+
+    void worldTree.offsetWidth;
+
+
+    /*
+       A árvore começa a aparecer.
+    */
+
+    worldTree.classList.add(
+        "active"
+    );
+
+
+    /*
+       A interface inteira começa a tremer.
+    */
+
+    document.body.classList.add(
+        "tree-event"
+    );
+
+
+    /*
+       O prompt desaparece progressivamente.
+    */
+
+   setTimeout(
+    function() {
+
+        const inputArea =
+            document.querySelector(
+                ".input-area"
+            );
+
+        const buttonArea =
+            document.querySelector(
+                ".button-area"
+            );
+
+        const revelationArea =
+            document.querySelector(
+                ".revelation"
+            );
+
+        if (
+            inputArea
+        ) {
+
+            inputArea.style.display =
+                "none";
+
+        }
+
+        if (
+            buttonArea
+        ) {
+
+            buttonArea.style.display =
+                "none";
+
+        }
+
+        if (
+            revelationArea
+        ) {
+
+            revelationArea.style.display =
+                "none";
+
+        }
+
+    },
+    450
+);
+setTimeout(
+    function() {
+
+        const flowerArea =
+            document.querySelector(
+                ".flower-area"
+            );
+
+        if (
+            flowerArea
+        ) {
+
+            flowerArea.style.display =
+                "none";
+
+        }
+
+    },
+    1200
+);
+
+
+    /*
+       Depois que a árvore terminou de surgir,
+       o tremor é removido explicitamente.
+    */
+
+    setTimeout(
+        function() {
+
+            document.body.classList.remove(
+                "tree-event"
+            );
+
+        },
+        7800
+    );
+
+}
+
+
+/* =========================================================
+   EXIBIR RESPOSTA ESPECIAL
+========================================================= */
+
+function handleSpecialResponse(
+    key
+) {
+
+    if (
+        !Object.prototype.hasOwnProperty.call(
+            specialResponses,
+            key
+        )
+    ) {
+
+        return false;
+
+    }
+
+
+    specialResponseUsed =
+        true;
+
+
+    /*
+       Trevas possui comportamento próprio.
+    */
+
+    if (
+        key === "trevas"
+    ) {
+
+        activateDarkness();
+
+        return true;
+
+    }
+
+
+    showMessage(
+        specialResponses[key]
+    );
+
+
+    return true;
+
+}
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+answer.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key !== "Enter"
+        ) {
+
             return;
+
         }
 
-        pulled = true;
+
+        if (
+            treeEventActivated
+        ) {
+
+            return;
+
+        }
+
+
+        const value =
+            answer.value.trim();
+
+
+        const key =
+            value.toLowerCase();
+
+
+        inputCount++;
+
+
+        clearInactivityTimers();
+
+
+        if (
+            message.textContent !== ""
+        ) {
+
+            clearMessageTimeout();
+
+            message.textContent =
+                "";
+
+        }
+
+
+        const isSpecial =
+            Object.prototype.hasOwnProperty.call(
+                specialResponses,
+                key
+            );
+
+
+        const isName =
+            nameGroup.includes(
+                key
+            );
+
 
         /*
-         * Puxa a alavanca.
-         */
+           Especial já no primeiro input
+           libera o botão.
+        */
 
-        lever.classList.remove("normal");
-        lever.classList.add("pulled");
+        if (
+    inputCount >= 5 ||
+    isSpecial
+) {
+
+    buttonUnlocked =
+        true;
+
+    button.classList.add(
+        "available"
+    );
+
+}
 
 
-        /*
-         * Revela o código Morse.
-         */
+        /* =================================================
+           VITA
+        ================================================= */
 
-        setTimeout(() => {
+        if (
+            key === "vita"
+        ) {
 
-            morse.classList.add("visible");
+            window.location.href =
+                "https://SEU-SITE-AQUI.com";
 
-        }, 500);
+            return;
 
-    });
+        }
+
+
+        /* =================================================
+           SEQUÊNCIA DOS ELEMENTOS
+        ================================================= */
+
+        const specialElementSequence =
+            updateElementSequence(key);
+
+
+        if (
+            specialElementSequence
+        ) {
+
+            specialResponseUsed =
+                true;
+
+
+            activateTreeEvent();
+
+            return;
+
+        }
+
+
+        /* =================================================
+           LUZ
+        ================================================= */
+
+        if (
+            key === "luz"
+        ) {
+
+            specialResponseUsed =
+                true;
+
+
+            showMessage(
+                specialResponses[key]
+            );
+
+
+            temporaryColor(
+                "light"
+            );
+
+
+            return;
+
+        }
+
+
+        /* =================================================
+           ENERGIA
+        ================================================= */
+
+        if (
+            key === "energia"
+        ) {
+
+            specialResponseUsed =
+                true;
+
+
+            showMessage(
+                specialResponses[key]
+            );
+
+
+            temporaryColor(
+                "energy"
+            );
+
+
+            return;
+
+        }
+
+
+        /* =================================================
+           CONHECIMENTO
+        ================================================= */
+
+        if (
+            key === "conhecimento"
+        ) {
+
+            specialResponseUsed =
+                true;
+
+
+            showMessage(
+                specialResponses[key]
+            );
+
+
+            temporaryColor(
+                "knowledge"
+            );
+
+
+            loseOnePetal(
+                true
+            );
+
+
+            return;
+
+        }
+
+
+        /* =================================================
+           TREVAS NORMAL
+        ================================================= */
+
+        if (
+            key === "trevas"
+        ) {
+
+            activateDarkness();
+
+            return;
+
+        }
+
+
+        /* =================================================
+           TEMPO
+        ================================================= */
+
+        if (
+            key === "tempo"
+        ) {
+
+            timeCount++;
+
+
+            if (
+                timeCount >= 4
+            ) {
+
+                breakClock();
+
+                return;
+
+            }
+
+
+            if (
+                !timeBroken
+            ) {
+
+                showClock();
+
+            }
+
+
+            return;
+
+        }
+
+
+        /* =================================================
+           YULLA KYRIARCHOS
+        ================================================= */
+
+        if (
+            key === "yulla kyriarchos"
+        ) {
+
+            specialResponseUsed =
+                true;
+
+
+            showMessage(
+                specialResponses[key]
+            );
+
+
+            temporaryColor(
+                "knowledge"
+            );
+
+
+            return;
+
+        }
+
+
+        /* =================================================
+           COMANDOS QUE PERDEM PÉTALA
+        ================================================= */
+
+        if (
+            onePetalCommands.includes(
+                key
+            )
+        ) {
+
+            specialResponseUsed =
+                true;
+
+
+            showMessage(
+                specialResponses[key]
+            );
+
+
+            loseOnePetal(
+                true
+            );
+
+
+            return;
+
+        }
+
+
+        /* =================================================
+           NOMES
+        ================================================= */
+
+        if (
+    isName
+) {
+
+    if (
+        namePromptShown
+    ) {
+
+        showMessage(
+            "Não o de seu mestre. E sim o SEU nome."
+        );
+
+        namePromptShown =
+            false;
+
+        nameHintUsed =
+            true;
+
+        return;
+
+    }
+
+    showMessage(
+        "..."
+    );
+
+    return;
+
+}
+
+
+        /* =================================================
+           PRIMEIRO INPUT DESCONHECIDO
+        ================================================= */
+
+        if (
+    inputCount === 1 &&
+    !isSpecial &&
+    !isName
+) {
+
+    namePromptShown =
+        true;
+
+
+    showMessage(
+        "Comece pelo seu nome"
+    );
+
+
+    return;
+
+}
+
+
+        /* =================================================
+           RESPOSTA ESPECIAL
+        ================================================= */
+
+        if (
+            handleSpecialResponse(
+                key
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        /* =================================================
+           QUALQUER OUTRA RESPOSTA
+        ================================================= */
+
+        showMessage(
+            "..."
+        );
+
+    }
+);
+
+
+/* =========================================================
+   BOTÃO MORSE
+========================================================= */
+
+function reveal() {
+
+    if (
+        revealed ||
+        treeEventActivated
+    ) {
+
+        return;
+
+    }
+
+
+    if (
+        !buttonUnlocked
+    ) {
+
+        return;
+
+    }
+
+
+    revealed =
+        true;
+
+
+    button.classList.add(
+        "pressed"
+    );
+
+
+    revelation.classList.add(
+        "visible"
+    );
+
+}
+
+
+button.addEventListener(
+    "click",
+    reveal
+);
+
+
+button.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "Enter" ||
+            event.key === " "
+        ) {
+
+            event.preventDefault();
+
+            reveal();
+
+        }
+
+    }
+);
 
 </script>
 
 </body>
+
 </html>
-```
